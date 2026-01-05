@@ -67,6 +67,7 @@ export type Database = {
           difficulty_level: string
           id: string
           order_index: number
+          subject_id: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -78,6 +79,7 @@ export type Database = {
           difficulty_level: string
           id?: string
           order_index?: number
+          subject_id?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -89,11 +91,20 @@ export type Database = {
           difficulty_level?: string
           id?: string
           order_index?: number
+          subject_id?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lessons_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -238,6 +249,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subjects: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          order_index: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          order_index?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          order_index?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
