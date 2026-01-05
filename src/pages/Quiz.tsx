@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 
 interface Question {
   id: string;
@@ -16,51 +16,283 @@ interface Question {
   correct_answer: string;
 }
 
-// Default quiz questions for demo
+// Quiz questions organized by lesson/topic
+const quizQuestionsByLesson: Record<string, Question[]> = {
+  // DSA Quizzes
+  "dsa-1": [
+    {
+      id: "1",
+      question_text: "What is a data structure?",
+      options: [
+        { label: "A", text: "A programming language" },
+        { label: "B", text: "A way to organize and store data" },
+        { label: "C", text: "A type of database" },
+        { label: "D", text: "A sorting algorithm" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "2",
+      question_text: "Which of the following is a linear data structure?",
+      options: [
+        { label: "A", text: "Tree" },
+        { label: "B", text: "Graph" },
+        { label: "C", text: "Array" },
+        { label: "D", text: "Heap" },
+      ],
+      correct_answer: "C",
+    },
+    {
+      id: "3",
+      question_text: "What does O(n) represent in time complexity?",
+      options: [
+        { label: "A", text: "Constant time" },
+        { label: "B", text: "Linear time" },
+        { label: "C", text: "Quadratic time" },
+        { label: "D", text: "Logarithmic time" },
+      ],
+      correct_answer: "B",
+    },
+  ],
+  "dsa-2": [
+    {
+      id: "1",
+      question_text: "What is the time complexity of accessing an element in an array?",
+      options: [
+        { label: "A", text: "O(n)" },
+        { label: "B", text: "O(1)" },
+        { label: "C", text: "O(log n)" },
+        { label: "D", text: "O(n²)" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "2",
+      question_text: "What is the main advantage of arrays?",
+      options: [
+        { label: "A", text: "Dynamic size" },
+        { label: "B", text: "Random access in O(1)" },
+        { label: "C", text: "Easy insertion anywhere" },
+        { label: "D", text: "No memory wastage" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "3",
+      question_text: "What is the time complexity of binary search on a sorted array?",
+      options: [
+        { label: "A", text: "O(n)" },
+        { label: "B", text: "O(log n)" },
+        { label: "C", text: "O(n log n)" },
+        { label: "D", text: "O(1)" },
+      ],
+      correct_answer: "B",
+    },
+  ],
+  "dsa-3": [
+    {
+      id: "1",
+      question_text: "What is the main advantage of a linked list over an array?",
+      options: [
+        { label: "A", text: "Random access" },
+        { label: "B", text: "Less memory usage" },
+        { label: "C", text: "Dynamic size and efficient insertion" },
+        { label: "D", text: "Faster search" },
+      ],
+      correct_answer: "C",
+    },
+    {
+      id: "2",
+      question_text: "Which data structure uses LIFO principle?",
+      options: [
+        { label: "A", text: "Queue" },
+        { label: "B", text: "Stack" },
+        { label: "C", text: "Array" },
+        { label: "D", text: "Linked List" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "3",
+      question_text: "What is the space complexity of a linked list with n elements?",
+      options: [
+        { label: "A", text: "O(1)" },
+        { label: "B", text: "O(log n)" },
+        { label: "C", text: "O(n)" },
+        { label: "D", text: "O(n²)" },
+      ],
+      correct_answer: "C",
+    },
+  ],
+  // Math Quizzes
+  "math-1": [
+    {
+      id: "1",
+      question_text: "What is the value of x in the equation 2x + 4 = 10?",
+      options: [
+        { label: "A", text: "2" },
+        { label: "B", text: "3" },
+        { label: "C", text: "4" },
+        { label: "D", text: "5" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "2",
+      question_text: "Simplify: 3(x + 2) - 2x",
+      options: [
+        { label: "A", text: "x + 6" },
+        { label: "B", text: "5x + 6" },
+        { label: "C", text: "x + 2" },
+        { label: "D", text: "3x + 6" },
+      ],
+      correct_answer: "A",
+    },
+    {
+      id: "3",
+      question_text: "What is the order of operations?",
+      options: [
+        { label: "A", text: "SADMEP" },
+        { label: "B", text: "PEMDAS" },
+        { label: "C", text: "ASMDEP" },
+        { label: "D", text: "DEPMSA" },
+      ],
+      correct_answer: "B",
+    },
+  ],
+  // Physics Quizzes  
+  "physics-1": [
+    {
+      id: "1",
+      question_text: "What is the formula for velocity?",
+      options: [
+        { label: "A", text: "v = d × t" },
+        { label: "B", text: "v = d / t" },
+        { label: "C", text: "v = d + t" },
+        { label: "D", text: "v = t / d" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "2",
+      question_text: "Which of the following is a vector quantity?",
+      options: [
+        { label: "A", text: "Speed" },
+        { label: "B", text: "Distance" },
+        { label: "C", text: "Velocity" },
+        { label: "D", text: "Time" },
+      ],
+      correct_answer: "C",
+    },
+    {
+      id: "3",
+      question_text: "What is the SI unit of acceleration?",
+      options: [
+        { label: "A", text: "m/s" },
+        { label: "B", text: "m/s²" },
+        { label: "C", text: "km/h" },
+        { label: "D", text: "m" },
+      ],
+      correct_answer: "B",
+    },
+  ],
+  // Chemistry Quizzes
+  "chem-1": [
+    {
+      id: "1",
+      question_text: "What are the subatomic particles in an atom?",
+      options: [
+        { label: "A", text: "Atoms, molecules, ions" },
+        { label: "B", text: "Protons, neutrons, electrons" },
+        { label: "C", text: "Nucleus, shell, orbital" },
+        { label: "D", text: "Cations, anions, isotopes" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "2",
+      question_text: "What determines the atomic number of an element?",
+      options: [
+        { label: "A", text: "Number of neutrons" },
+        { label: "B", text: "Number of electrons" },
+        { label: "C", text: "Number of protons" },
+        { label: "D", text: "Mass number" },
+      ],
+      correct_answer: "C",
+    },
+    {
+      id: "3",
+      question_text: "What is the maximum number of electrons in the second shell (L shell)?",
+      options: [
+        { label: "A", text: "2" },
+        { label: "B", text: "8" },
+        { label: "C", text: "18" },
+        { label: "D", text: "32" },
+      ],
+      correct_answer: "B",
+    },
+  ],
+  // Programming Quizzes
+  "prog-1": [
+    {
+      id: "1",
+      question_text: "What is a programming language?",
+      options: [
+        { label: "A", text: "A spoken language" },
+        { label: "B", text: "A formal language for instructing computers" },
+        { label: "C", text: "A type of database" },
+        { label: "D", text: "An operating system" },
+      ],
+      correct_answer: "B",
+    },
+    {
+      id: "2",
+      question_text: "Which language is known for being beginner-friendly?",
+      options: [
+        { label: "A", text: "Assembly" },
+        { label: "B", text: "C++" },
+        { label: "C", text: "Python" },
+        { label: "D", text: "Rust" },
+      ],
+      correct_answer: "C",
+    },
+    {
+      id: "3",
+      question_text: "What is the difference between compiled and interpreted languages?",
+      options: [
+        { label: "A", text: "Compiled runs faster, interpreted is more portable" },
+        { label: "B", text: "No difference" },
+        { label: "C", text: "Interpreted is always faster" },
+        { label: "D", text: "Compiled languages don't exist" },
+      ],
+      correct_answer: "A",
+    },
+  ],
+};
+
+// Default fallback questions
 const defaultQuestions: Question[] = [
   {
     id: "1",
-    question_text: "What is the time complexity of binary search?",
+    question_text: "What is the primary purpose of this lesson?",
     options: [
-      { label: "A", text: "O(n)" },
-      { label: "B", text: "O(log n)" },
-      { label: "C", text: "O(n log n)" },
-      { label: "D", text: "O(n²)" },
+      { label: "A", text: "Entertainment" },
+      { label: "B", text: "Learning and understanding concepts" },
+      { label: "C", text: "Exercise" },
+      { label: "D", text: "Cooking" },
     ],
     correct_answer: "B",
   },
   {
     id: "2",
-    question_text: "Which data structure uses LIFO principle?",
+    question_text: "How can you best remember what you learned?",
     options: [
-      { label: "A", text: "Queue" },
-      { label: "B", text: "Stack" },
-      { label: "C", text: "Array" },
-      { label: "D", text: "Linked List" },
+      { label: "A", text: "By practicing regularly" },
+      { label: "B", text: "By forgetting it" },
+      { label: "C", text: "By ignoring it" },
+      { label: "D", text: "By sleeping" },
     ],
-    correct_answer: "B",
-  },
-  {
-    id: "3",
-    question_text: "What is the space complexity of a linked list?",
-    options: [
-      { label: "A", text: "O(1)" },
-      { label: "B", text: "O(log n)" },
-      { label: "C", text: "O(n)" },
-      { label: "D", text: "O(n²)" },
-    ],
-    correct_answer: "C",
-  },
-  {
-    id: "4",
-    question_text: "Which sorting algorithm has the best average case time complexity?",
-    options: [
-      { label: "A", text: "Bubble Sort - O(n²)" },
-      { label: "B", text: "Quick Sort - O(n log n)" },
-      { label: "C", text: "Insertion Sort - O(n²)" },
-      { label: "D", text: "Selection Sort - O(n²)" },
-    ],
-    correct_answer: "B",
+    correct_answer: "A",
   },
 ];
 
@@ -71,6 +303,7 @@ export default function Quiz() {
   const { toast } = useToast();
 
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [lessonTitle, setLessonTitle] = useState("Quiz");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [showResult, setShowResult] = useState(false);
@@ -82,27 +315,30 @@ export default function Quiz() {
   }, [id]);
 
   const fetchQuestions = async () => {
-    if (id?.startsWith("demo")) {
-      setQuestions(defaultQuestions);
+    // Check for lesson-specific questions
+    if (id && quizQuestionsByLesson[id]) {
+      setQuestions(quizQuestionsByLesson[id]);
+      setLessonTitle(getLessonTitle(id));
       setIsLoading(false);
       return;
     }
 
-    // Try to fetch quiz for this lesson
-    const { data: quizData, error: quizError } = await supabase
+    // Try to fetch quiz from database
+    const { data: quizData } = await supabase
       .from("quizzes")
-      .select("id")
+      .select("id, title")
       .eq("lesson_id", id)
       .maybeSingle();
 
-    if (!quizError && quizData) {
-      const { data: questionsData, error: questionsError } = await supabase
+    if (quizData) {
+      setLessonTitle(quizData.title);
+      const { data: questionsData } = await supabase
         .from("quiz_questions")
         .select("*")
         .eq("quiz_id", quizData.id)
         .order("order_index");
 
-      if (!questionsError && questionsData && questionsData.length > 0) {
+      if (questionsData && questionsData.length > 0) {
         const formattedQuestions = questionsData.map((q) => ({
           id: q.id,
           question_text: q.question_text,
@@ -115,9 +351,23 @@ export default function Quiz() {
       }
     }
 
-    // Use default questions if no quiz found
+    // Use default questions
     setQuestions(defaultQuestions);
+    setLessonTitle(id ? `Quiz: ${id}` : "Practice Quiz");
     setIsLoading(false);
+  };
+
+  const getLessonTitle = (lessonId: string): string => {
+    const titles: Record<string, string> = {
+      "dsa-1": "Introduction to DSA Quiz",
+      "dsa-2": "Arrays Quiz",
+      "dsa-3": "Linked Lists Quiz",
+      "math-1": "Algebra Fundamentals Quiz",
+      "physics-1": "Motion and Kinematics Quiz",
+      "chem-1": "Atomic Structure Quiz",
+      "prog-1": "Introduction to Programming Quiz",
+    };
+    return titles[lessonId] || "Quiz";
   };
 
   const handleTimeUp = useCallback(() => {
@@ -146,7 +396,7 @@ export default function Quiz() {
     ).length;
     const score = Math.round((correctCount / questions.length) * 100);
 
-    if (user && !id?.startsWith("demo")) {
+    if (user && id) {
       // Save progress
       await supabase.from("progress").upsert({
         user_id: user.id,
@@ -196,8 +446,15 @@ export default function Quiz() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <header className="mb-8">
+            <Link 
+              to={`/lesson/${id}`} 
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Lesson
+            </Link>
             <h1 className="text-3xl font-bold text-foreground">
-              Data Structures and Algorithms
+              {lessonTitle}
             </h1>
 
             {/* Progress and Timer */}
@@ -273,23 +530,14 @@ export default function Quiz() {
                       onClick={handleSubmit}
                       className="btn-primary"
                     >
-                      Submit Answer
+                      Submit Quiz
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setCurrentIndex((prev) => Math.min(prev + 1, questions.length - 1));
-                    }}
-                    disabled={currentIndex >= questions.length - 1}
-                  >
-                    Skip Question
-                  </Button>
                 </>
               ) : (
-                <Link to="/lessons">
+                <Link to={`/lesson/${id}`}>
                   <Button className="btn-primary">
-                    Back to Lessons
+                    Back to Lesson
                   </Button>
                 </Link>
               )}

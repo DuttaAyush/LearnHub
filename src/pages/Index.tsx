@@ -1,23 +1,19 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import { LessonCard } from "@/components/lessons/LessonCard";
-import { BookOpen, BarChart3, MessageSquare, Trophy, ArrowRight } from "lucide-react";
+import { BookOpen, BarChart3, MessageSquare, Trophy, ArrowRight, Bot, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
-// Sample lessons data for initial display
-const sampleLessons = [
-  { id: "1", title: "Introduction to DSA", progress: 50, difficulty: "beginner", tags: ["basics", "intro"] },
-  { id: "2", title: "Arrays", progress: 75, difficulty: "beginner", tags: ["linear", "basics"] },
-  { id: "3", title: "Linked Lists", progress: 25, difficulty: "intermediate", tags: ["linear", "pointers"] },
-  { id: "4", title: "Stacks", progress: 0, difficulty: "beginner", tags: ["linear", "LIFO"] },
-];
-
 const features = [
   {
-    icon: BookOpen,
-    title: "Adaptive Learning",
-    description: "Personalized lesson recommendations based on your progress and performance.",
+    icon: GraduationCap,
+    title: "Multiple Subjects",
+    description: "Learn DSA, Mathematics, Physics, Chemistry, Programming, and more.",
+  },
+  {
+    icon: Bot,
+    title: "AI Tutor",
+    description: "Get personalized help from our AI tutor anytime you need it.",
   },
   {
     icon: BarChart3,
@@ -25,15 +21,18 @@ const features = [
     description: "Monitor your learning journey with detailed analytics and insights.",
   },
   {
-    icon: MessageSquare,
-    title: "Discussion Forums",
-    description: "Engage with peers and instructors in real-time discussions.",
-  },
-  {
     icon: Trophy,
     title: "Interactive Quizzes",
-    description: "Test your knowledge with timed quizzes and instant feedback.",
+    description: "Test your knowledge with topic-specific quizzes and instant feedback.",
   },
+];
+
+const subjects = [
+  { name: "Data Structures & Algorithms", color: "bg-primary/10 text-primary" },
+  { name: "Mathematics", color: "bg-success/10 text-success" },
+  { name: "Physics", color: "bg-purple-500/10 text-purple-600" },
+  { name: "Chemistry", color: "bg-warning/10 text-warning" },
+  { name: "Programming", color: "bg-accent/10 text-accent" },
 ];
 
 export default function Index() {
@@ -51,17 +50,17 @@ export default function Index() {
               <span className="gradient-text">Platform</span>
             </h1>
             <p className="mt-6 text-xl text-accent font-medium">
-              Data Structures and Algorithms
+              Learn Any Subject, Your Way
             </p>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Master DSA with personalized learning paths, interactive quizzes, and real-time progress tracking. 
-              Start your journey to becoming a better programmer today.
+              Master multiple subjects with personalized learning paths, AI tutoring, interactive quizzes, and real-time progress tracking. 
+              Start your journey to success today.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               {user ? (
-                <Link to="/lessons">
+                <Link to="/subjects">
                   <Button className="btn-primary flex items-center gap-2 text-lg px-8 py-6">
-                    Continue Learning
+                    Explore Subjects
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -73,9 +72,9 @@ export default function Index() {
                       <ArrowRight className="h-5 w-5" />
                     </Button>
                   </Link>
-                  <Link to="/lessons">
+                  <Link to="/subjects">
                     <Button className="btn-secondary text-lg px-8 py-6">
-                      Explore Lessons
+                      Browse Subjects
                     </Button>
                   </Link>
                 </>
@@ -85,9 +84,35 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-muted/30">
+      {/* Subjects Preview */}
+      <section className="py-16 bg-muted/30">
         <div className="container">
+          <h2 className="text-2xl font-bold text-foreground text-center mb-8">
+            Available Subjects
+          </h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            {subjects.map((subject) => (
+              <Link key={subject.name} to="/subjects">
+                <span className={`px-4 py-2 rounded-full font-medium transition-transform hover:scale-105 ${subject.color}`}>
+                  {subject.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Why Choose LearnHub?
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Our platform is designed to help you learn effectively with cutting-edge features
+            </p>
+          </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature, index) => {
               const Icon = feature.icon;
@@ -113,50 +138,45 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Lessons Preview Section */}
-      <section className="py-20">
+      {/* AI Tutor CTA */}
+      <section className="py-20 bg-gradient-to-r from-primary to-primary/80">
         <div className="container">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground">Available Lessons</h2>
-              <p className="mt-2 text-muted-foreground">
-                Start learning with our comprehensive DSA curriculum
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground mb-4">
+                <Bot className="h-5 w-5" />
+                <span className="font-medium">AI-Powered</span>
+              </div>
+              <h2 className="text-3xl font-bold text-primary-foreground mb-4">
+                Meet Your AI Tutor
+              </h2>
+              <p className="text-primary-foreground/80 max-w-xl">
+                Get instant help with any concept. Our AI tutor is available 24/7 to answer your questions, 
+                explain complex topics, and guide you through problems step by step.
               </p>
             </div>
-            <Link to="/lessons">
-              <Button variant="outline" className="flex items-center gap-2">
-                View All
-                <ArrowRight className="h-4 w-4" />
+            <Link to="/ai-tutor">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 flex items-center gap-2">
+                Try AI Tutor
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {sampleLessons.map((lesson, index) => (
-              <div
-                key={lesson.id}
-                className="animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <LessonCard {...lesson} />
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary">
+      <section className="py-20">
         <div className="container text-center">
-          <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-            Ready to Master DSA?
+          <h2 className="text-3xl font-bold text-foreground mb-4">
+            Ready to Start Learning?
           </h2>
-          <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Join thousands of learners who are improving their algorithmic thinking and problem-solving skills.
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join thousands of learners who are achieving their goals with personalized adaptive learning.
           </p>
-          <Link to={user ? "/dashboard" : "/auth"}>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6">
-              {user ? "Go to Dashboard" : "Start Learning Now"}
+          <Link to={user ? "/subjects" : "/auth"}>
+            <Button className="btn-primary text-lg px-8 py-6">
+              {user ? "Explore Subjects" : "Get Started Free"}
             </Button>
           </Link>
         </div>

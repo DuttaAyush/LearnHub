@@ -1,19 +1,20 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, BarChart3, LogOut, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Home, BookOpen, BarChart3, LogOut, User, Bot, GraduationCap, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
-  { path: "/lessons", label: "Lessons", icon: BookOpen },
+  { path: "/subjects", label: "Subjects", icon: GraduationCap },
+  { path: "/ai-tutor", label: "AI Tutor", icon: Bot },
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
 ];
 
@@ -24,7 +25,7 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/auth");
+    navigate("/");
   };
 
   return (
@@ -32,10 +33,10 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-            <BookOpen className="h-5 w-5 text-accent-foreground" />
+            <GraduationCap className="h-5 w-5 text-accent-foreground" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-primary-foreground">DSA</span>
+            <span className="text-lg font-bold text-primary-foreground">LearnHub</span>
             <span className="text-xs text-primary-foreground/70">Adaptive Learning</span>
           </div>
         </Link>
@@ -78,6 +79,11 @@ export function Navbar() {
                     <span className="font-medium">{profile?.username || "User"}</span>
                     <span className="text-xs text-muted-foreground">{user.email}</span>
                   </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
