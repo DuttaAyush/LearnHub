@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DSA Adaptive Learning Platform Design System
+   Color Palette: Deep navy blues with teal/turquoise accents
+   Inspired by modern e-learning platforms */
+
+@layer base {
+  :root {
+    /* Core colors - Deep navy and teal palette */
+    --background: 210 20% 98%;
+    --foreground: 210 50% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 50% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 50% 15%;
+
+    /* Primary - Deep navy blue */
+    --primary: 210 50% 25%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft teal */
+    --secondary: 175 35% 92%;
+    --secondary-foreground: 210 50% 20%;
+
+    /* Muted - Light grayish blue */
+    --muted: 210 20% 95%;
+    --muted-foreground: 210 20% 45%;
+
+    /* Accent - Vibrant teal */
+    --accent: 170 60% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Success - Teal green for progress */
+    --success: 170 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 170 60% 45%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 210 50% 20%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 170 60% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 28%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 50% 30%;
+    --sidebar-ring: 170 60% 45%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210 50% 25%) 0%, hsl(210 60% 35%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(170 60% 45%) 0%, hsl(160 60% 50%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(170 50% 80%) 0%, hsl(200 50% 85%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(175 35% 96%) 0%, hsl(175 35% 92%) 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(210 20% 20% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(210 20% 20% / 0.1), 0 2px 4px -2px hsl(210 20% 20% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(210 20% 20% / 0.1), 0 4px 6px -4px hsl(210 20% 20% / 0.1);
+    --shadow-card: 0 4px 20px -2px hsl(210 50% 25% / 0.08);
+  }
+
+  .dark {
+    --background: 210 50% 8%;
+    --foreground: 210 20% 95%;
+
+    --card: 210 50% 12%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 210 50% 12%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 170 60% 50%;
+    --primary-foreground: 210 50% 10%;
+
+    --secondary: 210 50% 18%;
+    --secondary-foreground: 210 20% 95%;
+
+    --muted: 210 50% 15%;
+    --muted-foreground: 210 20% 60%;
+
+    --accent: 170 60% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 170 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 50% 20%;
+    --input: 210 50% 20%;
+    --ring: 170 60% 50%;
+
+    --sidebar-background: 210 50% 10%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 170 60% 50%;
+    --sidebar-primary-foreground: 210 50% 10%;
+    --sidebar-accent: 210 50% 18%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 50% 18%;
+    --sidebar-ring: 170 60% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-foreground;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-accent);
+  }
+
+  .card-lesson {
+    @apply rounded-xl bg-card p-6 transition-all duration-300;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-lesson:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .progress-bar {
+    @apply h-2 rounded-full overflow-hidden;
+    background: hsl(var(--secondary));
+  }
+
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+    background: var(--gradient-accent);
+  }
+
+  .nav-link {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .nav-link:hover {
+    @apply bg-sidebar-accent;
+  }
+
+  .nav-link.active {
+    @apply bg-sidebar-primary text-sidebar-primary-foreground;
+  }
+
+  .stat-card {
+    @apply rounded-xl p-5 transition-all duration-300;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-card-blue {
+    background: hsl(210 50% 95%);
+  }
+
+  .stat-card-teal {
+    background: hsl(175 45% 92%);
+  }
+
+  .stat-card-green {
+    background: hsl(160 45% 92%);
+  }
+
+  .quiz-option {
+    @apply p-4 rounded-xl border-2 border-border bg-card cursor-pointer transition-all duration-200;
+  }
+
+  .quiz-option:hover {
+    @apply border-accent bg-secondary;
+  }
+
+  .quiz-option.selected {
+    @apply border-accent bg-accent/10;
+  }
+
+  .quiz-option.correct {
+    @apply border-success bg-success/10;
+  }
+
+  .quiz-option.incorrect {
+    @apply border-destructive bg-destructive/10;
+  }
+
+  .btn-primary {
+    background: var(--gradient-accent);
+    @apply text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200;
+    box-shadow: 0 4px 14px 0 hsl(170 60% 45% / 0.35);
+  }
+
+  .btn-primary:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 6px 20px 0 hsl(170 60% 45% / 0.45);
+  }
+
+  .btn-secondary {
+    @apply bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl transition-all duration-200;
+    box-shadow: 0 4px 14px 0 hsl(210 50% 25% / 0.25);
+  }
+
+  .btn-secondary:hover {
+    @apply -translate-y-0.5 bg-primary/90;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-200;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
