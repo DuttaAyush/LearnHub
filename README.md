@@ -14,10 +14,10 @@ To run and edit the project locally, make sure you have Node.js and npm installe
 
 Steps:
 # Clone the repository
-git clone <YOUR_GIT_URL>
+git clone (https://github.com/DuttaAyush/LearnHub.git)
 
 # Navigate to the project folder
-cd <YOUR_PROJECT_NAME>
+cd LearnHub
 
 # Install dependencies
 npm install
