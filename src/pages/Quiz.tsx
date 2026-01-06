@@ -397,14 +397,34 @@ export default function Quiz() {
     const score = Math.round((correctCount / questions.length) * 100);
 
     if (user && id) {
-      // Save progress
-      await supabase.from("progress").upsert({
-        user_id: user.id,
-        lesson_id: id,
-        completion_percentage: 100,
-        quiz_score: score,
-        completed_at: new Date().toISOString(),
-      });
+      // Check if progress exists
+      const { data: existingProgress } = await supabase
+        .from("progress")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("lesson_id", id)
+        .maybeSingle();
+
+      if (existingProgress) {
+        // Update existing progress
+        await supabase
+          .from("progress")
+          .update({
+            completion_percentage: 100,
+            quiz_score: score,
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", existingProgress.id);
+      } else {
+        // Insert new progress
+        await supabase.from("progress").insert({
+          user_id: user.id,
+          lesson_id: id,
+          completion_percentage: 100,
+          quiz_score: score,
+          completed_at: new Date().toISOString(),
+        });
+      }
     }
 
     toast({

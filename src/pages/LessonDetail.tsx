@@ -225,6 +225,34 @@ export default function LessonDetail() {
     };
   }, [id]);
 
+  // Track lesson progress when user views the lesson
+  useEffect(() => {
+    if (user && id && lesson) {
+      trackLessonProgress();
+    }
+  }, [user, id, lesson]);
+
+  const trackLessonProgress = async () => {
+    if (!user || !id) return;
+
+    // Check if progress exists
+    const { data: existingProgress } = await supabase
+      .from("progress")
+      .select("id, completion_percentage")
+      .eq("user_id", user.id)
+      .eq("lesson_id", id)
+      .maybeSingle();
+
+    if (!existingProgress) {
+      // Create new progress entry (50% for viewing lesson, 100% after quiz)
+      await supabase.from("progress").insert({
+        user_id: user.id,
+        lesson_id: id,
+        completion_percentage: 50,
+      });
+    }
+  };
+
   const fetchLesson = async () => {
     // First check if it's a default lesson
     if (id && lessonContentMap[id]) {
