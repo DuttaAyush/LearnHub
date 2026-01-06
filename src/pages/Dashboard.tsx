@@ -12,6 +12,7 @@ interface ProgressData {
   lesson_id: string;
   completion_percentage: number;
   quiz_score: number | null;
+  updated_at: string;
   lessons: {
     title: string;
     difficulty_level: string;
@@ -43,12 +44,14 @@ export default function Dashboard() {
         lesson_id,
         completion_percentage,
         quiz_score,
+        updated_at,
         lessons (
           title,
           difficulty_level
         )
       `)
-      .eq("user_id", user?.id);
+      .eq("user_id", user?.id)
+      .order("updated_at", { ascending: false });
 
     if (!error && data) {
       setProgress(data as ProgressData[]);
