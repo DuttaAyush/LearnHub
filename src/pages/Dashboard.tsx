@@ -34,10 +34,34 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       fetchProgress();
+      
+      // Subscribe to real-time progress updates
+      const channel = supabase
+        .channel('dashboard-progress')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'progress',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            // Refetch progress when any change occurs
+            fetchProgress();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
   const fetchProgress = async () => {
+    if (!user) return;
+    
     const { data, error } = await supabase
       .from("progress")
       .select(`
@@ -50,7 +74,7 @@ export default function Dashboard() {
           difficulty_level
         )
       `)
-      .eq("user_id", user?.id)
+      .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
 
     if (!error && data) {
