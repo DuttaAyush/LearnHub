@@ -16,10 +16,9 @@ interface Question {
   correct_answer: string;
 }
 
-// Quiz questions organized by lesson/topic
-const quizQuestionsByLesson: Record<string, Question[]> = {
-  // DSA Quizzes
-  "dsa-1": [
+// Quiz questions organized by lesson title (case-insensitive match)
+const quizQuestionsByTitle: Record<string, Question[]> = {
+  "introduction to dsa": [
     {
       id: "1",
       question_text: "What is a data structure?",
@@ -54,7 +53,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  "dsa-2": [
+  "arrays": [
     {
       id: "1",
       question_text: "What is the time complexity of accessing an element in an array?",
@@ -89,7 +88,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  "dsa-3": [
+  "linked lists": [
     {
       id: "1",
       question_text: "What is the main advantage of a linked list over an array?",
@@ -124,8 +123,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "C",
     },
   ],
-  // Math Quizzes
-  "math-1": [
+  "algebra fundamentals": [
     {
       id: "1",
       question_text: "What is the value of x in the equation 2x + 4 = 10?",
@@ -160,8 +158,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  // Physics Quizzes  
-  "physics-1": [
+  "motion and kinematics": [
     {
       id: "1",
       question_text: "What is the formula for velocity?",
@@ -196,8 +193,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  // Chemistry Quizzes
-  "chem-1": [
+  "atomic structure": [
     {
       id: "1",
       question_text: "What are the subatomic particles in an atom?",
@@ -232,8 +228,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  // Programming Quizzes
-  "prog-1": [
+  "introduction to programming": [
     {
       id: "1",
       question_text: "What is a programming language?",
@@ -315,24 +310,23 @@ export default function Quiz() {
   }, [id]);
 
   const fetchQuestions = async () => {
-    // Check for lesson-specific questions
-     // Check for category-based questions (dsa, math, physics, etc.)
-    const categoryPrefix = id?.split('-')[0]; // Extract prefix like 'dsa' from 'dsa-1'
-    const categoryQuestions = Object.entries(quizQuestionsByLesson)
-      .filter(([key]) => key.startsWith(categoryPrefix + '-'))
-      .flatMap(([, questions]) => questions);
-    
-    if (id && categoryQuestions.length > 0) {
-      setQuestions(categoryQuestions);
-      setLessonTitle(getLessonTitle(id));
-      setIsLoading(false);
-      return;
-    }
-    if (id && quizQuestionsByLesson[id]) {
-      setQuestions(quizQuestionsByLesson[id]);
-      setLessonTitle(getLessonTitle(id));
-      setIsLoading(false);
-      return;
+    // First, try to fetch the lesson from database to get the title
+    const { data: lessonData } = await supabase
+      .from("lessons")
+      .select("id, title")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (lessonData) {
+      const titleKey = lessonData.title.toLowerCase();
+      setLessonTitle(`${lessonData.title} Quiz`);
+      
+      // Check for title-based questions
+      if (quizQuestionsByTitle[titleKey]) {
+        setQuestions(quizQuestionsByTitle[titleKey]);
+        setIsLoading(false);
+        return;
+      }
     }
 
     // Try to fetch quiz from database
@@ -365,30 +359,8 @@ export default function Quiz() {
 
     // Use default questions
     setQuestions(defaultQuestions);
-    setLessonTitle(id ? `Quiz: ${id}` : "Practice Quiz");
+    setLessonTitle(id ? `Quiz` : "Practice Quiz");
     setIsLoading(false);
-  };
-
-  319
-    381
-      = (lessonId: string): string => {
-    const titles: Record<string, string> = {
-      "dsa-1": "Introduction to DSA Quiz",
-      "dsa-2": "Arrays Quiz",
-      "dsa-3": "Linked Lists Quiz",
-      "math-1": "Algebra Fundamentals Quiz",
-      "physics-1": "Motion and Kinematics Quiz",
-      "chem-1": "Atomic Structure Quiz",
-      "prog-1": "Introduction to Programming Quiz",
-            // Category-level quizzes
-      "dsa": "All DSA Quizzes",
-      "math": "All Math Quizzes",
-      "physics": "All Physics Quizzes",
-      "chem": "All Chemistry Quizzes",
-      "prog": "All Programming Quizzes",
-      
-    };
-    return titles[lessonId] || "Quiz";
   };
 
   const handleTimeUp = useCallback(() => {
@@ -418,14 +390,37 @@ export default function Quiz() {
     const score = Math.round((correctCount / questions.length) * 100);
 
     if (user && id) {
-      // Save progress
-      await supabase.from("progress").upsert({
-        user_id: user.id,
-        lesson_id: id,
-        completion_percentage: 100,
-        quiz_score: score,
-        completed_at: new Date().toISOString(),
-      });
+      // Check if progress exists
+      const { data: existingProgress } = await supabase
+        .from("progress")
+        .select("id, completion_percentage")
+        .eq("user_id", user.id)
+        .eq("lesson_id", id)
+        .maybeSingle();
+
+      if (existingProgress) {
+        // Quiz adds 40% to progress (capped at 100%)
+        // If already at 60% (content + all videos), this makes it 100%
+        const currentWithoutQuiz = Math.min(existingProgress.completion_percentage, 60);
+        const newPercentage = Math.min(currentWithoutQuiz + 40, 100);
+        
+        await supabase
+          .from("progress")
+          .update({
+            completion_percentage: newPercentage,
+            quiz_score: score,
+            completed_at: newPercentage === 100 ? new Date().toISOString() : null,
+          })
+          .eq("id", existingProgress.id);
+      } else {
+        // Insert new progress (quiz only = 40%)
+        await supabase.from("progress").insert({
+          user_id: user.id,
+          lesson_id: id,
+          completion_percentage: 40,
+          quiz_score: score,
+        });
+      }
     }
 
     toast({
