@@ -12,6 +12,8 @@ interface Message {
   content: string;
 }
 
+// hi
+
 const subjects = [
   { value: "dsa", label: "Data Structures & Algorithms" },
   { value: "math", label: "Mathematics" },
