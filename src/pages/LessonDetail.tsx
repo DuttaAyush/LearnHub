@@ -23,13 +23,9 @@ interface DiscussionPost {
   username: string;
 }
 
-// Default lesson content for different topics
-const lessonContentMap: Record<string, Lesson> = {
-  // DSA Lessons
-  "dsa-1": {
-    id: "dsa-1",
-    title: "Introduction to DSA",
-    content: `Data structures are fundamental concepts in computer science that enable efficient data organization and manipulation. They provide the foundation for designing algorithms and solving complex problems.
+// Default lesson content mapped by title (lowercase)
+const lessonContentByTitle: Record<string, string> = {
+  "introduction to dsa": `Data structures are fundamental concepts in computer science that enable efficient data organization and manipulation. They provide the foundation for designing algorithms and solving complex problems.
 
 In this lesson, we'll explore:
 - What are data structures and why they matter
@@ -42,13 +38,7 @@ Understanding data structures is crucial for:
 2. Optimizing memory usage
 3. Solving complex algorithmic problems
 4. Acing technical interviews`,
-    difficulty_level: "beginner",
-    tags: ["basics", "intro"],
-  },
-  "dsa-2": {
-    id: "dsa-2",
-    title: "Arrays",
-    content: `Arrays are one of the most fundamental data structures. They store elements in contiguous memory locations, allowing for constant-time access to any element.
+  "arrays": `Arrays are one of the most fundamental data structures. They store elements in contiguous memory locations, allowing for constant-time access to any element.
 
 Key concepts:
 - Array declaration and initialization
@@ -63,13 +53,7 @@ Common array operations:
 3. Insert at end - O(1) amortized
 4. Insert at position - O(n)
 5. Delete - O(n)`,
-    difficulty_level: "beginner",
-    tags: ["linear", "basics"],
-  },
-  "dsa-3": {
-    id: "dsa-3",
-    title: "Linked Lists",
-    content: `A linked list is a linear data structure where elements are stored in nodes. Each node contains data and a reference to the next node.
+  "linked lists": `A linked list is a linear data structure where elements are stored in nodes. Each node contains data and a reference to the next node.
 
 Types of linked lists:
 - Singly Linked List
@@ -85,14 +69,7 @@ Disadvantages:
 1. No random access (must traverse from head)
 2. Extra memory for storing pointers
 3. Not cache-friendly`,
-    difficulty_level: "intermediate",
-    tags: ["linear", "pointers"],
-  },
-  // Math Lessons
-  "math-1": {
-    id: "math-1",
-    title: "Algebra Fundamentals",
-    content: `Algebra is the branch of mathematics dealing with symbols and the rules for manipulating those symbols.
+  "algebra fundamentals": `Algebra is the branch of mathematics dealing with symbols and the rules for manipulating those symbols.
 
 Core concepts:
 - Variables and constants
@@ -105,33 +82,7 @@ Key skills:
 2. Solving for unknowns
 3. Working with inequalities
 4. Factoring polynomials`,
-    difficulty_level: "beginner",
-    tags: ["algebra", "basics"],
-  },
-  "math-2": {
-    id: "math-2",
-    title: "Linear Equations",
-    content: `Linear equations are equations where the highest power of the variable is 1.
-
-Standard form: ax + b = c
-
-Methods to solve:
-1. Isolation method
-2. Substitution
-3. Graphical method
-
-Applications:
-- Distance-rate-time problems
-- Mixture problems
-- Cost and profit calculations`,
-    difficulty_level: "beginner",
-    tags: ["algebra", "equations"],
-  },
-  // Physics Lessons
-  "physics-1": {
-    id: "physics-1",
-    title: "Motion and Kinematics",
-    content: `Kinematics is the study of motion without considering the forces causing it.
+  "motion and kinematics": `Kinematics is the study of motion without considering the forces causing it.
 
 Key concepts:
 - Displacement, velocity, and acceleration
@@ -144,14 +95,7 @@ Equations of motion (constant acceleration):
 2. s = ut + ½at²
 3. v² = u² + 2as
 4. s = ½(u + v)t`,
-    difficulty_level: "beginner",
-    tags: ["mechanics", "motion"],
-  },
-  // Chemistry Lessons
-  "chem-1": {
-    id: "chem-1",
-    title: "Atomic Structure",
-    content: `Atoms are the basic building blocks of matter, consisting of protons, neutrons, and electrons.
+  "atomic structure": `Atoms are the basic building blocks of matter, consisting of protons, neutrons, and electrons.
 
 Key concepts:
 - Subatomic particles and their properties
@@ -164,14 +108,7 @@ Electron shells:
 2. L shell (8 electrons max)
 3. M shell (18 electrons max)
 4. N shell (32 electrons max)`,
-    difficulty_level: "beginner",
-    tags: ["atoms", "basics"],
-  },
-  // Programming Lessons
-  "prog-1": {
-    id: "prog-1",
-    title: "Introduction to Programming",
-    content: `Programming is the process of creating instructions for computers to execute.
+  "introduction to programming": `Programming is the process of creating instructions for computers to execute.
 
 Core concepts:
 - What is a programming language?
@@ -184,9 +121,6 @@ Popular programming languages:
 2. JavaScript - web development
 3. Java - enterprise applications
 4. C++ - system programming, games`,
-    difficulty_level: "beginner",
-    tags: ["basics", "intro"],
-  },
 };
 
 // Default fallback lesson
@@ -254,14 +188,7 @@ export default function LessonDetail() {
   };
 
   const fetchLesson = async () => {
-    // First check if it's a default lesson
-    if (id && lessonContentMap[id]) {
-      setLesson(lessonContentMap[id]);
-      setIsLoading(false);
-      return;
-    }
-
-    // Try to fetch from database
+    // Try to fetch from database first
     const { data, error } = await supabase
       .from("lessons")
       .select("*")
@@ -269,10 +196,20 @@ export default function LessonDetail() {
       .maybeSingle();
 
     if (!error && data) {
-      setLesson(data);
+      // Check if we have supplemental content by title
+      const titleKey = data.title.toLowerCase();
+      if (lessonContentByTitle[titleKey]) {
+        // Use database metadata but with our richer content
+        setLesson({
+          ...data,
+          content: lessonContentByTitle[titleKey],
+        });
+      } else {
+        setLesson(data);
+      }
     } else {
       // Use fallback
-      setLesson({ ...defaultLesson, id: id || "demo", title: `Lesson: ${id}` });
+      setLesson({ ...defaultLesson, id: id || "demo", title: `Lesson` });
     }
     setIsLoading(false);
   };

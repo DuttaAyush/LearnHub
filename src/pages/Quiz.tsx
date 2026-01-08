@@ -16,10 +16,9 @@ interface Question {
   correct_answer: string;
 }
 
-// Quiz questions organized by lesson/topic
-const quizQuestionsByLesson: Record<string, Question[]> = {
-  // DSA Quizzes
-  "dsa-1": [
+// Quiz questions organized by lesson title (case-insensitive match)
+const quizQuestionsByTitle: Record<string, Question[]> = {
+  "introduction to dsa": [
     {
       id: "1",
       question_text: "What is a data structure?",
@@ -54,7 +53,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  "dsa-2": [
+  "arrays": [
     {
       id: "1",
       question_text: "What is the time complexity of accessing an element in an array?",
@@ -89,7 +88,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  "dsa-3": [
+  "linked lists": [
     {
       id: "1",
       question_text: "What is the main advantage of a linked list over an array?",
@@ -124,8 +123,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "C",
     },
   ],
-  // Math Quizzes
-  "math-1": [
+  "algebra fundamentals": [
     {
       id: "1",
       question_text: "What is the value of x in the equation 2x + 4 = 10?",
@@ -160,8 +158,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  // Physics Quizzes  
-  "physics-1": [
+  "motion and kinematics": [
     {
       id: "1",
       question_text: "What is the formula for velocity?",
@@ -196,8 +193,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  // Chemistry Quizzes
-  "chem-1": [
+  "atomic structure": [
     {
       id: "1",
       question_text: "What are the subatomic particles in an atom?",
@@ -232,8 +228,7 @@ const quizQuestionsByLesson: Record<string, Question[]> = {
       correct_answer: "B",
     },
   ],
-  // Programming Quizzes
-  "prog-1": [
+  "introduction to programming": [
     {
       id: "1",
       question_text: "What is a programming language?",
@@ -315,12 +310,23 @@ export default function Quiz() {
   }, [id]);
 
   const fetchQuestions = async () => {
-    // Check for lesson-specific questions
-    if (id && quizQuestionsByLesson[id]) {
-      setQuestions(quizQuestionsByLesson[id]);
-      setLessonTitle(getLessonTitle(id));
-      setIsLoading(false);
-      return;
+    // First, try to fetch the lesson from database to get the title
+    const { data: lessonData } = await supabase
+      .from("lessons")
+      .select("id, title")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (lessonData) {
+      const titleKey = lessonData.title.toLowerCase();
+      setLessonTitle(`${lessonData.title} Quiz`);
+      
+      // Check for title-based questions
+      if (quizQuestionsByTitle[titleKey]) {
+        setQuestions(quizQuestionsByTitle[titleKey]);
+        setIsLoading(false);
+        return;
+      }
     }
 
     // Try to fetch quiz from database
@@ -353,21 +359,8 @@ export default function Quiz() {
 
     // Use default questions
     setQuestions(defaultQuestions);
-    setLessonTitle(id ? `Quiz: ${id}` : "Practice Quiz");
+    setLessonTitle(id ? `Quiz` : "Practice Quiz");
     setIsLoading(false);
-  };
-
-  const getLessonTitle = (lessonId: string): string => {
-    const titles: Record<string, string> = {
-      "dsa-1": "Introduction to DSA Quiz",
-      "dsa-2": "Arrays Quiz",
-      "dsa-3": "Linked Lists Quiz",
-      "math-1": "Algebra Fundamentals Quiz",
-      "physics-1": "Motion and Kinematics Quiz",
-      "chem-1": "Atomic Structure Quiz",
-      "prog-1": "Introduction to Programming Quiz",
-    };
-    return titles[lessonId] || "Quiz";
   };
 
   const handleTimeUp = useCallback(() => {
