@@ -316,6 +316,18 @@ export default function Quiz() {
 
   const fetchQuestions = async () => {
     // Check for lesson-specific questions
+     // Check for category-based questions (dsa, math, physics, etc.)
+    const categoryPrefix = id?.split('-')[0]; // Extract prefix like 'dsa' from 'dsa-1'
+    const categoryQuestions = Object.entries(quizQuestionsByLesson)
+      .filter(([key]) => key.startsWith(categoryPrefix + '-'))
+      .flatMap(([, questions]) => questions);
+    
+    if (id && categoryQuestions.length > 0) {
+      setQuestions(categoryQuestions);
+      setLessonTitle(getLessonTitle(id));
+      setIsLoading(false);
+      return;
+    }
     if (id && quizQuestionsByLesson[id]) {
       setQuestions(quizQuestionsByLesson[id]);
       setLessonTitle(getLessonTitle(id));
@@ -357,7 +369,9 @@ export default function Quiz() {
     setIsLoading(false);
   };
 
-  const getLessonTitle = (lessonId: string): string => {
+  319
+    381
+      = (lessonId: string): string => {
     const titles: Record<string, string> = {
       "dsa-1": "Introduction to DSA Quiz",
       "dsa-2": "Arrays Quiz",
@@ -366,6 +380,13 @@ export default function Quiz() {
       "physics-1": "Motion and Kinematics Quiz",
       "chem-1": "Atomic Structure Quiz",
       "prog-1": "Introduction to Programming Quiz",
+            // Category-level quizzes
+      "dsa": "All DSA Quizzes",
+      "math": "All Math Quizzes",
+      "physics": "All Physics Quizzes",
+      "chem": "All Chemistry Quizzes",
+      "prog": "All Programming Quizzes",
+      
     };
     return titles[lessonId] || "Quiz";
   };
