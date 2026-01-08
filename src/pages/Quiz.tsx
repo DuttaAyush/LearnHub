@@ -393,32 +393,29 @@ export default function Quiz() {
       // Check if progress exists
       const { data: existingProgress } = await supabase
         .from("progress")
-        .select("id, completion_percentage")
+        .select("id")
         .eq("user_id", user.id)
         .eq("lesson_id", id)
         .maybeSingle();
 
       if (existingProgress) {
-        // Quiz adds 40% to progress (capped at 100%)
-        // If already at 60% (content + all videos), this makes it 100%
-        const currentWithoutQuiz = Math.min(existingProgress.completion_percentage, 60);
-        const newPercentage = Math.min(currentWithoutQuiz + 40, 100);
-        
+        // Update existing progress
         await supabase
           .from("progress")
           .update({
-            completion_percentage: newPercentage,
+            completion_percentage: 100,
             quiz_score: score,
-            completed_at: newPercentage === 100 ? new Date().toISOString() : null,
+            completed_at: new Date().toISOString(),
           })
           .eq("id", existingProgress.id);
       } else {
-        // Insert new progress (quiz only = 40%)
+        // Insert new progress
         await supabase.from("progress").insert({
           user_id: user.id,
           lesson_id: id,
-          completion_percentage: 40,
+          completion_percentage: 100,
           quiz_score: score,
+          completed_at: new Date().toISOString(),
         });
       }
     }

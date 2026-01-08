@@ -8,8 +8,6 @@ interface StatCardProps {
   icon?: ReactNode;
 }
 
-// test
-
 export function StatCard({ title, value, subtitle, variant = "blue", icon }: StatCardProps) {
   const variantClasses = {
     blue: "stat-card-blue",
