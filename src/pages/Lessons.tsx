@@ -81,9 +81,51 @@ export default function Lessons() {
   const [searchQuery, setSearchQuery] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
 
+  const fetchProgress = async () => {
+    if (!user) return;
+    
+    const { data: progressData } = await supabase
+      .from("progress")
+      .select("lesson_id, completion_percentage")
+      .eq("user_id", user.id);
+
+    if (progressData) {
+      const progressMap: Record<string, number> = {};
+      progressData.forEach((p) => {
+        progressMap[p.lesson_id] = p.completion_percentage;
+      });
+      setProgress(progressMap);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [user, subjectId]);
+
+  // Real-time subscription for progress updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`lessons-progress-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "progress",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchProgress();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -145,20 +187,7 @@ export default function Lessons() {
     }
 
     // Fetch user progress if logged in
-    if (user) {
-      const { data: progressData } = await supabase
-        .from("progress")
-        .select("lesson_id, completion_percentage")
-        .eq("user_id", user.id);
-
-      if (progressData) {
-        const progressMap: Record<string, number> = {};
-        progressData.forEach((p) => {
-          progressMap[p.lesson_id] = p.completion_percentage;
-        });
-        setProgress(progressMap);
-      }
-    }
+    await fetchProgress();
 
     setIsLoading(false);
   };
