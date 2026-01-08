@@ -23,6 +23,44 @@ interface DiscussionPost {
   username: string;
 }
 
+interface VideoResource {
+  title: string;
+  url: string;
+  duration: string;
+}
+
+// Video resources mapped by lesson title (lowercase)
+const videoResourcesByTitle: Record<string, VideoResource[]> = {
+  "introduction to dsa": [
+    { title: "What are Data Structures?", url: "https://www.youtube.com/watch?v=bum_19loj9A", duration: "12:34" },
+    { title: "Why DSA Matters for Interviews", url: "https://www.youtube.com/watch?v=B31LgI4Y4DQ", duration: "15:20" },
+  ],
+  "arrays": [
+    { title: "Arrays Explained - CS Dojo", url: "https://www.youtube.com/watch?v=pmN9ExDf3yQ", duration: "10:42" },
+    { title: "Array Operations & Time Complexity", url: "https://www.youtube.com/watch?v=n60Dn0UsbEk", duration: "18:15" },
+  ],
+  "linked lists": [
+    { title: "Linked Lists for Beginners", url: "https://www.youtube.com/watch?v=F8AbOfQwl1c", duration: "14:30" },
+    { title: "Implementing Linked List in Code", url: "https://www.youtube.com/watch?v=njTh_OwMljA", duration: "22:10" },
+  ],
+  "algebra fundamentals": [
+    { title: "Algebra Basics - Khan Academy", url: "https://www.youtube.com/watch?v=NybHckSEQBI", duration: "16:45" },
+    { title: "Solving Equations Step by Step", url: "https://www.youtube.com/watch?v=LDIiYKYvvdA", duration: "11:30" },
+  ],
+  "motion and kinematics": [
+    { title: "Introduction to Motion", url: "https://www.youtube.com/watch?v=ZM8ECpBuQYE", duration: "13:22" },
+    { title: "Equations of Motion Explained", url: "https://www.youtube.com/watch?v=f8xtHFLjvoo", duration: "17:40" },
+  ],
+  "atomic structure": [
+    { title: "Atomic Structure Basics", url: "https://www.youtube.com/watch?v=1xSQlwWGT8M", duration: "14:15" },
+    { title: "Electron Configuration Made Easy", url: "https://www.youtube.com/watch?v=Aoi4j8es4gQ", duration: "19:30" },
+  ],
+  "introduction to programming": [
+    { title: "Programming Fundamentals", url: "https://www.youtube.com/watch?v=zOjov-2OZ0E", duration: "20:00" },
+    { title: "Your First Program", url: "https://www.youtube.com/watch?v=rfscVS0vtbw", duration: "25:30" },
+  ],
+};
+
 // Default lesson content mapped by title (lowercase)
 const lessonContentByTitle: Record<string, string> = {
   "introduction to dsa": `Data structures are fundamental concepts in computer science that enable efficient data organization and manipulation. They provide the foundation for designing algorithms and solving complex problems.
@@ -149,6 +187,8 @@ export default function LessonDetail() {
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
+  const [currentProgress, setCurrentProgress] = useState(0);
 
   useEffect(() => {
     fetchLesson();
@@ -178,12 +218,65 @@ export default function LessonDetail() {
       .maybeSingle();
 
     if (!existingProgress) {
-      // Create new progress entry (50% for viewing lesson, 100% after quiz)
+      // Create new progress entry (30% for viewing lesson content)
       await supabase.from("progress").insert({
         user_id: user.id,
         lesson_id: id,
-        completion_percentage: 50,
+        completion_percentage: 30,
       });
+      setCurrentProgress(30);
+    } else {
+      setCurrentProgress(existingProgress.completion_percentage);
+    }
+  };
+
+  const handleWatchVideo = async (videoUrl: string) => {
+    if (!user || !id || !lesson) return;
+    
+    // Mark video as watched locally
+    const newWatched = new Set(watchedVideos);
+    newWatched.add(videoUrl);
+    setWatchedVideos(newWatched);
+    
+    // Open video in new tab
+    window.open(videoUrl, '_blank');
+    
+    // Get total videos for this lesson
+    const titleKey = lesson.title.toLowerCase();
+    const videos = videoResourcesByTitle[titleKey] || [];
+    const totalVideos = videos.length;
+    
+    if (totalVideos === 0) return;
+    
+    // Calculate progress: 30% content + (watched/total * 30%) videos + 40% quiz
+    const videosWatchedCount = newWatched.size;
+    const videoProgress = Math.round((videosWatchedCount / totalVideos) * 30);
+    
+    // Get current progress and update if videos add more
+    const { data: existingProgress } = await supabase
+      .from("progress")
+      .select("id, completion_percentage, quiz_score")
+      .eq("user_id", user.id)
+      .eq("lesson_id", id)
+      .maybeSingle();
+    
+    if (existingProgress) {
+      // Quiz gives 40%, so if quiz_score exists, add 40%
+      const quizProgress = existingProgress.quiz_score !== null ? 40 : 0;
+      const newPercentage = Math.min(30 + videoProgress + quizProgress, 100);
+      
+      if (newPercentage > existingProgress.completion_percentage) {
+        await supabase
+          .from("progress")
+          .update({ completion_percentage: newPercentage })
+          .eq("id", existingProgress.id);
+        setCurrentProgress(newPercentage);
+        
+        toast({
+          title: "Progress Updated!",
+          description: `You've completed ${newPercentage}% of this lesson.`,
+        });
+      }
     }
   };
 
@@ -375,26 +468,93 @@ export default function LessonDetail() {
             </div>
           </div>
 
-          {/* Practice Section */}
-          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border/50">
-            <h2 className="text-2xl font-bold text-foreground mb-4">Practice Questions</h2>
-            <p className="text-muted-foreground mb-6">
-              Test your understanding with questions related to {lesson.title}.
-            </p>
-            <Link to={`/quiz/${id}`}>
-              <Button className="btn-primary w-full flex items-center justify-center gap-2">
-                <Play className="h-4 w-4" />
-                Start Practice Quiz
-              </Button>
-            </Link>
-            
-            <div className="mt-6 pt-6 border-t border-border">
-              <h3 className="font-medium text-foreground mb-3">Need more help?</h3>
-              <Link to="/ai-tutor">
-                <Button variant="outline" className="w-full">
-                  Ask AI Tutor
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Progress Card */}
+            <div className="bg-card rounded-2xl p-6 shadow-lg border border-border/50">
+              <h3 className="font-semibold text-foreground mb-3">Your Progress</h3>
+              <div className="w-full bg-secondary rounded-full h-3 mb-2">
+                <div 
+                  className="bg-accent h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${currentProgress}%` }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">{currentProgress}% Complete</p>
+              <div className="mt-3 text-xs text-muted-foreground space-y-1">
+                <p>• Reading content: 30%</p>
+                <p>• Watching videos: 30%</p>
+                <p>• Completing quiz: 40%</p>
+              </div>
+            </div>
+
+            {/* Video Resources */}
+            {(() => {
+              const titleKey = lesson.title.toLowerCase();
+              const videos = videoResourcesByTitle[titleKey] || [];
+              return videos.length > 0 ? (
+                <div className="bg-card rounded-2xl p-6 shadow-lg border border-border/50">
+                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Play className="h-5 w-5 text-accent" />
+                    Video Resources
+                  </h2>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Watch these videos to deepen your understanding ({watchedVideos.size}/{videos.length} watched)
+                  </p>
+                  <div className="space-y-3">
+                    {videos.map((video, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleWatchVideo(video.url)}
+                        className={`w-full p-3 rounded-lg border text-left transition-all hover:border-accent/50 ${
+                          watchedVideos.has(video.url) 
+                            ? 'bg-accent/10 border-accent/30' 
+                            : 'bg-secondary/50 border-border'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-full ${
+                              watchedVideos.has(video.url) ? 'bg-accent text-accent-foreground' : 'bg-muted'
+                            }`}>
+                              <Play className="h-3 w-3" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground text-sm">{video.title}</p>
+                              <p className="text-xs text-muted-foreground">{video.duration}</p>
+                            </div>
+                          </div>
+                          {watchedVideos.has(video.url) && (
+                            <span className="text-xs text-accent font-medium">✓ Watched</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Practice Section */}
+            <div className="bg-card rounded-2xl p-6 shadow-lg border border-border/50">
+              <h2 className="text-xl font-bold text-foreground mb-4">Practice Quiz</h2>
+              <p className="text-muted-foreground text-sm mb-4">
+                Test your understanding with questions related to {lesson.title}.
+              </p>
+              <Link to={`/quiz/${id}`}>
+                <Button className="btn-primary w-full flex items-center justify-center gap-2">
+                  <Play className="h-4 w-4" />
+                  Start Practice Quiz
                 </Button>
               </Link>
+              
+              <div className="mt-4 pt-4 border-t border-border">
+                <h3 className="font-medium text-foreground text-sm mb-2">Need more help?</h3>
+                <Link to="/ai-tutor">
+                  <Button variant="outline" className="w-full" size="sm">
+                    Ask AI Tutor
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
